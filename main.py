@@ -144,22 +144,20 @@ async def buyprocess():
             await asyncio.sleep(3)
             global balance
             global balhigh
+            await asyncio.sleep(2)                 
 
-            # Buy Miners #
-            if balance > 1000 < 15000:
-                await botchan.send('!buy max miner')
-
-            # Buy Robots #     
-            elif balance > 50000 < 2250000:
-                await botchan.send('!buy max robot')
-
+            # Buy Frackers #    
+            if balance and balhigh >= 125000000:
+                await botchan.send('!buy max fracker')
             # Buy Swarms #
             elif balance > 2500000 < 125000000:
                 await botchan.send('!buy max swarms')
-
-            # Buy Frackers #    
-            elif balance and balhigh >= 125000000:
-                    await botchan.send('!buy max fracker')
+            # Buy Robots #     
+            elif balance > 50000 < 2250000:
+                await botchan.send('!buy max robot')
+            # Buy Miners #
+            elif balance > 1000 < 15000:
+                await botchan.send('!buy max miner')
 
             # Test Ability To Prestige #
             await botchan.send('!prestige')
@@ -194,3 +192,4 @@ except Exception as e:
     print('Token is invalid')
     with shelve.open('config/config') as config:
         config['token'] = input('Please input your user token.\n')
+        exit()
