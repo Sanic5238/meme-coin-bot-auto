@@ -22,6 +22,13 @@ try:
             botid = config['botid']
             balhigh = config['balhigh']
             userid = config['userid']
+            balance = config['balance']
+            prestige = config['prestige']
+
+            print('----------Current Stats----------')
+            print(F"Your Balance is {balance}")
+            print(F"Your highest balance is {balhigh}")
+            print(F"Your current prestige is {prestige}\n")
     else:
         with shelve.open('config/config') as config:
             config['token'] = input('Please input your user token.\n')
@@ -29,6 +36,8 @@ try:
             config['botid'] = input('Please input the ID of the bot.\n')
             config['userid'] = input('Please input your ID.\n')
             config['balhigh'] = 0
+            config['prestige'] = 0
+            config['balance'] = 0
             print('Please restart')
             exit()
 except Exception as e:
@@ -62,6 +71,9 @@ async def on_message(message):
     global user
     global name
 
+    balhigh = int(balhigh)
+    
+    # Get Balance and Convert to int #
     if message.author == bot:
         if message.channel == botchan:
             if str(name) and 'Prestige Level' in message.content:
@@ -70,8 +82,24 @@ async def on_message(message):
                 balance = s.split('total balance is: ', 1)[1].split('total memes per minute', 1)[0]
                 if ',' in balance:
                     balance = balance.replace(',', '')
-                    balance = int(balance)
-                    print(balance)
+                
+                balance = int(balance)
+
+                if balance > balhigh:
+                    balhigh = balance
+
+    # Auto Prestige #
+    if message.author == bot:
+        if message.channel == botchan:
+            if str(name) and "You have enough units to prestige." in message.content:
+                try:
+                    print(F"ASCENDED TO PRESTIGE {prestige + 1}")
+                    await botchan.send("!prestige YESIMSURE")
+                    with shelve.open('config/config') as config:
+                        config['balhigh'] = 0
+                except Exception:
+                    return
+
 
 async def mine():
     await asyncio.sleep(12)
@@ -108,16 +136,53 @@ async def startup():
 
 async def buyprocess():
     await asyncio.sleep(12)
-    global balance
     global bot
     global botchan
     try:
         while True:
             await botchan.send('!memes')
             await asyncio.sleep(3)
+            global balance
+            global balhigh
+
+            # Buy Miners #
+            if balance > 1000 < 15000:
+                await botchan.send('!buy max miner')
+
+            # Buy Robots #     
+            elif balance > 50000 < 2250000:
+                await botchan.send('!buy max robot')
+
+            # Buy Swarms #
+            elif balance > 2500000 < 125000000:
+                await botchan.send('!buy max swarms')
+
+            # Buy Frackers #    
+            elif balance and balhigh >= 125000000:
+                    await botchan.send('!buy max fracker')
+
+            # Test Ability To Prestige #
+            await botchan.send('!prestige')
+            await asyncio.sleep(600)
     except:
         return
 
+async def savedata():
+    await asyncio.sleep(10)
+    while True:
+        await asyncio.sleep(300)
+        try:
+            print('Saving Data...')
+            global balance
+            global balhigh
+            with shelve.open('config/config') as config:
+                config['balhigh'] = balhigh
+                config['balance'] = balance
+            print("Config Saved!\n")
+        except:
+            return
+
+client.loop.create_task(savedata())
 client.loop.create_task(buyprocess())
 client.loop.create_task(startup())
 client.loop.create_task(mine())
@@ -126,7 +191,6 @@ try:
     print("Logging in...\n")
     client.run(token, bot=False)
 except Exception as e:
-    print('Token is invalid, wiping config')
-    os.remove('config.dat')
-    os.remove('config.bak')
-    os.remove('config.dir')
+    print('Token is invalid')
+    with shelve.open('config/config') as config:
+        config['token'] = input('Please input your user token.\n')
